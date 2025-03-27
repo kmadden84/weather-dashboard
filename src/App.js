@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Container,
@@ -31,6 +31,7 @@ import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import useWeather from './hooks/useWeather';
+import WeatherAnimations from './components/WeatherAnimations';
 
 // Define themes based on weather condition
 const getTheme = (condition = 'clear') => {
@@ -538,6 +539,8 @@ const getWeatherIcon = (condition, isDay = true, size = 'large', color) => {
 
 function App() {
   const [searchInput, setSearchInput] = useState('');
+  const [scrollY, setScrollY] = useState(0);
+  const containerRef = useRef(null);
   
   // Use our custom hook to fetch weather data
   const { 
@@ -579,11 +582,39 @@ function App() {
     // This helps with smoother transitions between themes
     document.body.style.transition = 'background 0.5s ease';
   }, []);
+  
+  // For parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current) {
+        setScrollY(window.scrollY);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* Weather animations based on current condition with parallax effect */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0,
+          transform: `translateY(${scrollY * 0.3}px)`,
+        }}
+      >
+        <WeatherAnimations condition={themeCondition} />
+      </Box>
+      
       <Box 
+        ref={containerRef}
         sx={{ 
           minHeight: '100vh',
           px: { xs: 2, sm: 3, md: 4 },
