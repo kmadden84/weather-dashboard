@@ -4,30 +4,118 @@ import axios from 'axios';
 const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
+// Custom error for API issues
+class WeatherApiError extends Error {
+  constructor(message, status, data) {
+    super(message);
+    this.name = 'WeatherApiError';
+    this.status = status;
+    this.data = data;
+    this.response = { status, data }; // Make compatible with axios error structure
+  }
+}
+
+// Create axios instance with defaults
+const weatherAxios = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000, // 10 second timeout
+  params: {
+    appid: API_KEY
+  }
+});
+
+// Validate API key is available
+const validateApiKey = () => {
+  if (!API_KEY) {
+    throw new WeatherApiError(
+      'Weather API key is missing. Please check your environment variables.',
+      401,
+      { message: 'API key missing' }
+    );
+  }
+};
+
 // Get current weather data by city name
 export const getCurrentWeather = async (city, units = 'imperial') => {
   try {
-    const response = await axios.get(`${BASE_URL}/weather`, {
+    validateApiKey();
+    
+    if (!city || city.trim() === '') {
+      throw new WeatherApiError(
+        'City name is required',
+        400,
+        { message: 'City name is required' }
+      );
+    }
+    
+    const response = await weatherAxios.get('/weather', {
       params: {
         q: city,
-        appid: API_KEY,
         units: units // 'imperial' for Fahrenheit, 'metric' for Celsius
       }
     });
+    
     return response.data;
   } catch (error) {
-    console.error('Error fetching current weather:', error);
-    throw error;
+    // If it's already our custom error, just rethrow it
+    if (error instanceof WeatherApiError) {
+      throw error;
+    }
+    
+    // Handle axios errors
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const status = error.response.status;
+      const errorData = error.response.data || {};
+      
+      let message = 'Error fetching weather data';
+      
+      if (status === 404) {
+        message = `City "${city}" not found`;
+      } else if (status === 401) {
+        message = 'Invalid API key';
+      } else if (status >= 500) {
+        message = 'Weather service is temporarily unavailable';
+      } else if (errorData.message) {
+        message = errorData.message;
+      }
+      
+      throw new WeatherApiError(message, status, errorData);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new WeatherApiError(
+        'Network error. No response received from weather service.',
+        0,
+        { message: 'Network error' }
+      );
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw new WeatherApiError(
+        'Error setting up weather request: ' + error.message,
+        0,
+        { message: error.message }
+      );
+    }
   }
 };
 
 // Get 5-day forecast data by city name
 export const getForecast = async (city, units = 'imperial') => {
   try {
-    const response = await axios.get(`${BASE_URL}/forecast`, {
+    validateApiKey();
+    
+    if (!city || city.trim() === '') {
+      throw new WeatherApiError(
+        'City name is required',
+        400,
+        { message: 'City name is required' }
+      );
+    }
+    
+    const response = await weatherAxios.get('/forecast', {
       params: {
         q: city,
-        appid: API_KEY,
         units: units,
         cnt: 40 // 5 days, 8 data points per day (every 3 hours)
       }
@@ -37,8 +125,42 @@ export const getForecast = async (city, units = 'imperial') => {
     const dailyForecasts = processDailyForecasts(response.data);
     return dailyForecasts;
   } catch (error) {
-    console.error('Error fetching forecast:', error);
-    throw error;
+    // If it's already our custom error, just rethrow it
+    if (error instanceof WeatherApiError) {
+      throw error;
+    }
+    
+    // Handle axios errors - similar handling as getCurrentWeather
+    if (error.response) {
+      const status = error.response.status;
+      const errorData = error.response.data || {};
+      
+      let message = 'Error fetching forecast data';
+      
+      if (status === 404) {
+        message = `City "${city}" not found`;
+      } else if (status === 401) {
+        message = 'Invalid API key';
+      } else if (status >= 500) {
+        message = 'Weather service is temporarily unavailable';
+      } else if (errorData.message) {
+        message = errorData.message;
+      }
+      
+      throw new WeatherApiError(message, status, errorData);
+    } else if (error.request) {
+      throw new WeatherApiError(
+        'Network error. No response received from weather service.',
+        0,
+        { message: 'Network error' }
+      );
+    } else {
+      throw new WeatherApiError(
+        'Error setting up forecast request: ' + error.message,
+        0,
+        { message: error.message }
+      );
+    }
   }
 };
 

@@ -1,0 +1,74 @@
+/* Toast Styling */
+.Toastify__toast {
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.Toastify__toast--success {
+  background-color: rgba(46, 204, 113, 0.95);
+  color: white;
+  border-left: 4px solid #27ae60;
+}
+
+.Toastify__toast--error {
+  background-color: rgba(231, 76, 60, 0.95);
+  color: white;
+  border-left: 4px solid #c0392b;
+}
+
+.Toastify__toast--info {
+  background-color: rgba(52, 152, 219, 0.95);
+  color: white;
+  border-left: 4px solid #2980b9;
+}
+
+.Toastify__toast--warning {
+  background-color: rgba(243, 156, 18, 0.95);
+  color: white;
+  border-left: 4px solid #d35400;
+}
+
+.Toastify__progress-bar {
+  height: 4px;
+  bottom: 0;
+}
+
+.Toastify__toast-icon {
+  margin-right: 12px;
+}
+
+.Toastify__close-button {
+  opacity: 0.7;
+  color: white;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/* Dark mode adjustments */
+.dark-mode .Toastify__toast-container .Toastify__toast {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Weather toast custom styling */
+.weather-toast-error, 
+.weather-toast-success,
+.weather-toast-info,
+.weather-toast-warning {
+  backdrop-filter: blur(8px);
+  font-weight: 500;
+}
+
+/* Ensure text is readable on all backgrounds */
+.Toastify__toast-body {
+  word-break: break-word;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-weight: 500;
+} 

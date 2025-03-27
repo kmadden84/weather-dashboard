@@ -1,0 +1,48 @@
+/* App.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+.main-container {
+  position: relative;
+  z-index: 1;
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.dark-mode {
+  background-color: #1a202c;
+  color: #f7fafc;
+}
+
+.light-mode {
+  background-color: #f8f9fa;
+  color: #2d3748;
+}
+
+.details-open {
+  overflow: hidden;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 600px) {
+  .content-container {
+    padding: 12px;
+  }
+} 
