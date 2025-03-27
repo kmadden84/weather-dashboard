@@ -10,6 +10,7 @@ A modern, responsive weather dashboard built with React and Material-UI. This ap
 - Light and dark theme options
 - Responsive design for all device sizes
 - Beautiful, modern UI with smooth animations
+- Interactive weather animations based on current conditions
 
 ## Environment Setup
 
@@ -48,17 +49,31 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### `npm run deploy`
 
-### `npm run eject`
+Deploys the app to GitHub Pages. This command first runs the build script and then publishes the build folder to the gh-pages branch of your repository.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Deployment to GitHub Pages
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+This project is set up for easy deployment to GitHub Pages. Follow these steps:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. Open the `package.json` file and update the `homepage` field with your GitHub username:
+   ```
+   "homepage": "https://YOUR_GITHUB_USERNAME.github.io/weather_dashboard"
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+2. Make sure you have committed all your changes to your repository.
+
+3. Run the deployment command:
+   ```
+   npm run deploy
+   ```
+
+4. GitHub Pages will serve your site from the gh-pages branch. Visit `https://YOUR_GITHUB_USERNAME.github.io/weather_dashboard` to see your deployed app.
+
+5. For custom domains or other advanced GitHub Pages settings, see the [GitHub Pages documentation](https://docs.github.com/en/pages).
+
+**Note:** Make sure your repo has proper permissions set up for GitHub Actions to deploy to Pages.
 
 ## Learn More
 
@@ -96,7 +111,9 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 - Material-UI
 - Axios
 - OpenWeatherMap API
-- dotenv for environment variable management
+- React-Toastify for notifications
+- Recharts for data visualization
+- gh-pages for deployment
 
 ## License
 
