@@ -51,10 +51,11 @@ export const getCurrentWeather = async (city, units = 'imperial') => {
     const response = await weatherAxios.get('/weather', {
       params: {
         q: city,
-        units: units // 'imperial' for Fahrenheit, 'metric' for Celsius
+        units: units, // 'imperial' for Fahrenheit, 'metric' for Celsius
+        cnt: 0
       }
     });
-    
+
     return response.data;
   } catch (error) {
     // If it's already our custom error, just rethrow it
@@ -117,12 +118,18 @@ export const getForecast = async (city, units = 'imperial') => {
       params: {
         q: city,
         units: units,
-        cnt: 40 // 5 days, 8 data points per day (every 3 hours)
+        cnt: 40 // Get full 5-day forecast (40 timestamps, 8 per day)
       }
     });
     
-    // Process the forecast data to get daily forecasts
-    const dailyForecasts = processDailyForecasts(response.data);
+    // Filter the forecast data to get one timestamp per day (preferably mid-day)
+    const filteredData = {
+      ...response.data,
+      list: filterOneForecastPerDay(response.data.list)
+    };
+    
+    // Process the filtered forecast data to get daily forecasts
+    const dailyForecasts = processDailyForecasts(filteredData);
     return dailyForecasts;
   } catch (error) {
     // If it's already our custom error, just rethrow it
@@ -141,7 +148,7 @@ export const getForecast = async (city, units = 'imperial') => {
         message = `City "${city}" not found`;
       } else if (status === 401) {
         message = 'Invalid API key';
-      } else if (status >= 500) {
+      } else if (status === 500) {
         message = 'Weather service is temporarily unavailable';
       } else if (errorData.message) {
         message = errorData.message;
@@ -164,6 +171,26 @@ export const getForecast = async (city, units = 'imperial') => {
   }
 };
 
+// Helper function to filter forecast list to get one forecast per day (preferably mid-day)
+const filterOneForecastPerDay = (forecastList) => {
+  const uniqueDays = {};
+  
+  // Group forecasts by day
+  forecastList.forEach(forecast => {
+    const date = new Date(forecast.dt * 1000);
+    const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const hour = date.getHours();
+    
+    // Prefer timestamps around noon (12-14) for most representative daily weather
+    if (!uniqueDays[day] || (hour >= 12 && hour <= 14)) {
+      uniqueDays[day] = forecast;
+    }
+  });
+  
+  // Convert back to array
+  return Object.values(uniqueDays);
+};
+
 // Helper function to process the 5-day forecast into daily data
 const processDailyForecasts = (forecastData) => {
   const dailyData = {};
@@ -172,6 +199,7 @@ const processDailyForecasts = (forecastData) => {
   forecastData.list.forEach(forecast => {
     const date = new Date(forecast.dt * 1000);
     const day = date.toLocaleDateString('en-US', { weekday: 'short' });
+    
     
     if (!dailyData[day]) {
       dailyData[day] = {
@@ -182,17 +210,20 @@ const processDailyForecasts = (forecastData) => {
         conditionCounts: {}
       };
     }
-    
+
     // Update high/low temperatures
     dailyData[day].high = Math.max(dailyData[day].high, Math.round(forecast.main.temp_max));
     dailyData[day].low = Math.min(dailyData[day].low, Math.round(forecast.main.temp_min));
-    
+    dailyData[day].temp = Math.round(forecast.main.temp);
+    dailyData[day].humidity = forecast.main.humidity;
+    dailyData[day].windSpeed = forecast.wind.speed;
+
     // Track weather conditions to determine most common
     const condition = forecast.weather[0].main;
     dailyData[day].conditions.push(condition);
     dailyData[day].conditionCounts[condition] = (dailyData[day].conditionCounts[condition] || 0) + 1;
   });
-  
+
   // Determine most common condition for each day
   Object.values(dailyData).forEach(day => {
     let maxCount = 0;
@@ -337,8 +368,14 @@ export const getForecastByCoords = async (lat, lon, units = 'imperial') => {
       }
     });
     
-    // Process the forecast data to get daily forecasts
-    const dailyForecasts = processDailyForecasts(response.data);
+    // Filter the forecast data to get one timestamp per day
+    const filteredData = {
+      ...response.data,
+      list: filterOneForecastPerDay(response.data.list)
+    };
+    
+    // Process the filtered forecast data to get daily forecasts
+    const dailyForecasts = processDailyForecasts(filteredData);
     return dailyForecasts;
   } catch (error) {
     // If it's already our custom error, just rethrow it
