@@ -608,6 +608,7 @@ function App() {
           bottom: 0,
           zIndex: 0,
           transform: `translateY(${scrollY * 0.3}px)`,
+          pointerEvents: 'none', // Make sure clicks pass through
         }}
       >
         <WeatherAnimations condition={themeCondition} />
@@ -630,6 +631,17 @@ function App() {
             background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
             zIndex: 1,
           },
+          // Add subtle backdrop blur to make content more readable over animations
+          '& .MuiContainer-root': {
+            position: 'relative',
+            zIndex: 2,
+          },
+          '& .MuiCard-root, & .MuiPaper-root': {
+            backdropFilter: 'blur(5px)',
+            backgroundColor: theme.palette.mode === 'dark' ? 
+              'rgba(45, 55, 72, 0.75)' : 
+              'rgba(255, 255, 255, 0.75)',
+          }
         }}
       >
         <Container
