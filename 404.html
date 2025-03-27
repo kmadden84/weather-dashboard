@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Weather Dashboard</title>
+  <script>
+    // Single Page App redirection for GitHub Pages
+    // From: https://github.com/rafgraph/spa-github-pages
+    // This script takes the current URL and redirects to the index page with
+    // the path as a query parameter, which can then be processed by the main app
+    var segmentCount = 1; // Adjust this value based on your repo name (usually 1 for username.github.io/repo-name)
+    var l = window.location;
+    var repo = "/weather_dashboard"; // Replace with your repo name
+    l.replace(
+      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + repo + '/?p=/' +
+      l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body>
+  <h2>Redirecting...</h2>
+  <p>If you are not redirected automatically, <a href="index.html">click here</a>.</p>
+</body>
+</html> 
