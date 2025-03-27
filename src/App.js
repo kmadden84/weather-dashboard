@@ -31,7 +31,8 @@ function App() {
     loading, 
     error,
     selectedDay,
-    selectDay
+    selectDay,
+    getUserLocation
   } = useWeather();
 
   // Get selected forecast day or current weather data
@@ -51,30 +52,6 @@ function App() {
       return () => container.removeEventListener('scroll', handleScroll);
     }
   }, []);
-
-  const handleGeolocationError = (error) => {
-    let message = 'Could not get your location. ';
-    
-    switch(error.code) {
-      case error.PERMISSION_DENIED:
-        message += 'Location permission was denied.';
-        break;
-      case error.POSITION_UNAVAILABLE:
-        message += 'Location information is unavailable.';
-        break;
-      case error.TIMEOUT:
-        message += 'The request to get location timed out.';
-        break;
-      case error.UNKNOWN_ERROR:
-        message += 'An unknown error occurred.';
-        break;
-      default:
-        message += 'Please try again later.';
-    }
-    
-    // Use the utility function instead of direct toast call
-    showErrorToast(message);
-  };
   
   const toggleDarkMode = () => {
     setDarkMode(prevMode => !prevMode);
@@ -130,7 +107,7 @@ function App() {
               loading={loading}
               units={units}
               toggleUnits={toggleUnits}
-              onGeolocationError={handleGeolocationError}
+              getUserLocation={getUserLocation}
             />
             
             {/* Current Weather Display or Selected Day Forecast */}

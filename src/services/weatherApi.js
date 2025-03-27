@@ -249,4 +249,133 @@ export const formatDate = (timestamp) => {
 // Function to determine if it's daytime based on sunrise/sunset
 export const isDaytime = (dt, sunrise, sunset) => {
   return dt > sunrise && dt < sunset;
+};
+
+// Get current weather data by coordinates
+export const getWeatherByCoords = async (lat, lon, units = 'imperial') => {
+  try {
+    validateApiKey();
+    
+    if (lat === undefined || lon === undefined) {
+      throw new WeatherApiError(
+        'Latitude and longitude are required',
+        400,
+        { message: 'Latitude and longitude are required' }
+      );
+    }
+    
+    const response = await weatherAxios.get('/weather', {
+      params: {
+        lat: lat,
+        lon: lon,
+        units: units // 'imperial' for Fahrenheit, 'metric' for Celsius
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    // If it's already our custom error, just rethrow it
+    if (error instanceof WeatherApiError) {
+      throw error;
+    }
+    
+    // Handle axios errors
+    if (error.response) {
+      const status = error.response.status;
+      const errorData = error.response.data || {};
+      
+      let message = 'Error fetching weather data';
+      
+      if (status === 404) {
+        message = 'Location not found';
+      } else if (status === 401) {
+        message = 'Invalid API key';
+      } else if (status >= 500) {
+        message = 'Weather service is temporarily unavailable';
+      } else if (errorData.message) {
+        message = errorData.message;
+      }
+      
+      throw new WeatherApiError(message, status, errorData);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new WeatherApiError(
+        'Network error. No response received from weather service.',
+        0,
+        { message: 'Network error' }
+      );
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw new WeatherApiError(
+        'Error setting up weather request: ' + error.message,
+        0,
+        { message: error.message }
+      );
+    }
+  }
+};
+
+// Get 5-day forecast data by coordinates
+export const getForecastByCoords = async (lat, lon, units = 'imperial') => {
+  try {
+    validateApiKey();
+    
+    if (lat === undefined || lon === undefined) {
+      throw new WeatherApiError(
+        'Latitude and longitude are required',
+        400,
+        { message: 'Latitude and longitude are required' }
+      );
+    }
+    
+    const response = await weatherAxios.get('/forecast', {
+      params: {
+        lat: lat,
+        lon: lon,
+        units: units,
+        cnt: 40 // 5 days, 8 data points per day (every 3 hours)
+      }
+    });
+    
+    // Process the forecast data to get daily forecasts
+    const dailyForecasts = processDailyForecasts(response.data);
+    return dailyForecasts;
+  } catch (error) {
+    // If it's already our custom error, just rethrow it
+    if (error instanceof WeatherApiError) {
+      throw error;
+    }
+    
+    // Handle axios errors - similar handling as getCurrentWeather
+    if (error.response) {
+      const status = error.response.status;
+      const errorData = error.response.data || {};
+      
+      let message = 'Error fetching forecast data';
+      
+      if (status === 404) {
+        message = 'Location not found';
+      } else if (status === 401) {
+        message = 'Invalid API key';
+      } else if (status >= 500) {
+        message = 'Weather service is temporarily unavailable';
+      } else if (errorData.message) {
+        message = errorData.message;
+      }
+      
+      throw new WeatherApiError(message, status, errorData);
+    } else if (error.request) {
+      throw new WeatherApiError(
+        'Network error. No response received from weather service.',
+        0,
+        { message: 'Network error' }
+      );
+    } else {
+      throw new WeatherApiError(
+        'Error setting up forecast request: ' + error.message,
+        0,
+        { message: error.message }
+      );
+    }
+  }
 }; 

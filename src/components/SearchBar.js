@@ -16,7 +16,7 @@ const SearchBar = ({
   loading, 
   units, 
   toggleUnits,
-  onGeolocationError
+  getUserLocation
 }) => {
   const [searchInput, setSearchInput] = useState('');
 
@@ -34,24 +34,8 @@ const SearchBar = ({
   };
 
   const handleGeolocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // We can only set a location string here, not coordinates
-          // For demonstration, set to a nearby major city
-          setLocation("Current Location");
-        },
-        (error) => {
-          if (onGeolocationError) {
-            onGeolocationError(error);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    } else {
-      if (onGeolocationError) {
-        onGeolocationError({ code: "UNAVAILABLE", message: "Geolocation is not supported by this browser." });
-      }
+    if (getUserLocation) {
+      getUserLocation();
     }
   };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { getCurrentWeather, getForecast, formatDate, isDaytime } from '../services/weatherApi';
+import { getCurrentWeather, getForecast, formatDate, isDaytime, getWeatherByCoords, getForecastByCoords } from '../services/weatherApi';
 import React from 'react';
 import { showErrorToast, showSuccessToast, showInfoToast, showCustomToast, clearAllToasts } from '../utils/toastUtils';
 
@@ -245,6 +245,104 @@ const useWeather = (initialLocation = 'New York') => {
     }
   };
 
+  // Fetch weather data by coordinates
+  const fetchWeatherByCoords = async (lat, lon) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch current weather and forecast in parallel using coordinates
+      const [currentData, forecastData] = await Promise.all([
+        getWeatherByCoords(lat, lon, units),
+        getForecastByCoords(lat, lon, units)
+      ]);
+      
+      // Process current weather data - same as in fetchWeatherData
+      const processedCurrentWeather = {
+        city: currentData.name,
+        country: currentData.sys.country,
+        date: formatDate(currentData.dt),
+        temperature: Math.round(currentData.main.temp),
+        feelsLike: Math.round(currentData.main.feels_like),
+        condition: currentData.weather[0].main,
+        description: currentData.weather[0].description,
+        humidity: currentData.main.humidity,
+        windSpeed: Math.round(currentData.wind.speed),
+        windDirection: currentData.wind.deg,
+        uvIndex: 5, // Note: OpenWeatherMap free tier doesn't include UV Index
+        sunrise: new Date(currentData.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        sunset: new Date(currentData.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        icon: currentData.weather[0].icon,
+        isDay: isDaytime(currentData.dt, currentData.sys.sunrise, currentData.sys.sunset)
+      };
+      
+      setCurrentWeather(processedCurrentWeather);
+      setForecast(forecastData);
+      setLocation(currentData.name); // Update location name with the one returned by the API
+      setLastSuccessfulLocation(currentData.name);
+      setSelectedDay(null); // Reset selected day on successful fetch
+      setLoading(false);
+
+      // Show success toast for fetching by coordinates
+      showSuccessToast(`Weather data loaded for ${currentData.name}`);
+    } catch (err) {
+      console.error('Error in fetchWeatherByCoords:', err);
+      
+      // Handle errors similar to fetchWeatherData
+      if (currentWeather) {
+        showErrorToast('Could not get weather for your location. Using previous location.');
+        setLoading(false);
+        return;
+      }
+      
+      // For first load without existing data:
+      setError("We couldn't load weather data for your location. Please try again or search for a city.");
+      setLoading(false);
+      showErrorToast('Could not get weather for your location. Please try searching for a city instead.');
+    }
+  };
+
+  // Handle geolocation request
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      // Clear any existing toasts before trying to get location
+      clearAllToasts();
+      
+      setLoading(true);
+      showInfoToast('Getting your location...', { autoClose: 2000 });
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // Successfully got coordinates, fetch weather data
+          fetchWeatherByCoords(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          setLoading(false);
+          let message = 'Could not get your location. ';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              message += 'Location permission was denied.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message += 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              message += 'The request to get location timed out.';
+              break;
+            default:
+              message += 'Please try again later.';
+          }
+          
+          showErrorToast(message);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      showErrorToast('Geolocation is not supported by this browser. Please search for a city instead.');
+    }
+  };
+
   return {
     location,
     currentWeather,
@@ -256,8 +354,7 @@ const useWeather = (initialLocation = 'New York') => {
     toggleUnits,
     selectedDay,
     selectDay,
-    // Add a function to clear errors
-    clearError: () => setError(null)
+    getUserLocation
   };
 };
 
