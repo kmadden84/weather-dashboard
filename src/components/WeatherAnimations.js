@@ -27,7 +27,7 @@ const rain = keyframes`
     opacity: 0.7;
   }
   100% {
-    transform: translateY(100vh);
+    transform: translateY(120vh);
     opacity: 0;
   }
 `;
@@ -44,7 +44,7 @@ const snow = keyframes`
     opacity: 0.9;
   }
   100% {
-    transform: translateY(100vh) translateX(20px);
+    transform: translateY(120vh) translateX(20px);
     opacity: 0;
   }
 `;
@@ -137,7 +137,7 @@ const RainDrop = styled('div')(({ theme, index }) => ({
   animation: `${rain} ${0.5 + Math.random() * 0.3}s linear infinite`,
   animationDelay: `${Math.random() * 2}s`,
   left: `${(index * 5) % 100}%`,
-  top: '-20px',
+  top: '-10px',
   zIndex: 0,
 }));
 
@@ -223,15 +223,15 @@ const WeatherAnimations = ({ condition, scrollY = 0 }) => {
   return (
     <Box 
       sx={{ 
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
+        minHeight: '100vh',
         zIndex: 0,
         overflow: 'hidden',
         pointerEvents: 'none', // Make sure clicks pass through
-        transform: `translateY(${scrollY * 0.3}px)`,
       }}
     >
       {renderAnimation}
@@ -563,7 +563,7 @@ const renderRainyAnimation = (scrollY) => {
           sx={{
             position: 'absolute',
             left: raindrop.left,
-            top: '-5%',
+            top: '-10%',
             width: `${raindrop.width}px`,
             height: `${raindrop.height}px`,
             background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.8))',
@@ -613,7 +613,7 @@ const renderSnowyAnimation = (scrollY) => {
           sx={{
             position: 'absolute',
             left: snowflake.left,
-            top: '-5%',
+            top: '-10%',
             width: `${snowflake.size}px`,
             height: `${snowflake.size}px`,
             background: 'white',
@@ -758,28 +758,26 @@ const renderThunderstormAnimation = (scrollY) => {
         </Box>
       ))}
       
-      {/* Lightning flashes */}
+      {/* Lightning flashes with improved visibility */}
       {lightningFlashes.map((flash, index) => (
         <Box
-          key={`lightning-${index}`}
+          key={index}
           sx={{
             position: 'absolute',
             top: flash.top,
             left: flash.left,
-            width: `${flash.width}px`,
-            height: `${flash.height}px`,
-            background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%)',
+            width: flash.width,
+            height: flash.height,
             opacity: 0,
             animation: `${lightning} ${flash.duration}s infinite`,
             animationDelay: `${flash.delay}s`,
-            zIndex: 3,
-            transform: `scale(${flash.scale})`,
-            pointerEvents: 'none',
+            zIndex: 2,
+            background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
           }}
         />
       ))}
       
-      {/* Extra lightning bolt for dramatic effect */}
+      {/* Central lightning bolt */}
       <Box
         sx={{
           position: 'absolute',
@@ -806,7 +804,7 @@ const renderThunderstormAnimation = (scrollY) => {
           sx={{
             position: 'absolute',
             left: raindrop.left,
-            top: '-5%',
+            top: '-10%',
             width: `${raindrop.width}px`,
             height: `${raindrop.height}px`,
             background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.8))',
